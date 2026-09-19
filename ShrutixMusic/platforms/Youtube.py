@@ -88,6 +88,26 @@ async def download_video(link: str) -> str:
         return None
 
 
+async def get_autoplay(video_id: str) -> list:
+    video_id = video_id.split("v=")[-1].split("&")[0] if "v=" in video_id else video_id
+    if not video_id or len(video_id) < 3:
+        return []
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"{API_URL}/autoplay",
+                params={"video_id": video_id, "api_key": API_KEY},
+                timeout=aiohttp.ClientTimeout(total=20)
+            ) as resp:
+                if resp.status != 200:
+                    return []
+                data = await resp.json()
+                return data.get("tracks", [])
+    except Exception:
+        return []
+
+
 class YouTubeAPI:
     def __init__(self):
         self.base = "https://www.youtube.com/watch?v="
